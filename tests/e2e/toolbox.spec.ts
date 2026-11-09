@@ -64,7 +64,7 @@ test("catalog search and favorites survive a reload", async ({ page }) => {
   await page.getByRole("textbox", { name: "Search tools" }).fill("nothing matches this search");
   await expect(page.getByRole("heading", { name: "No tools found", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Browse all tools", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(8);
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(9);
 });
 
 test("the keyboard command palette opens a tool", async ({ page }) => {
@@ -492,6 +492,12 @@ test("mobile navigation reaches every tool without horizontal page overflow", as
     { id: "text", name: "Text toolkit", input: "Original text" },
     { id: "uuid", name: "UUID generator", input: "Generated UUIDs" },
     { id: "timestamp", name: "Timestamp converter", input: "Unix seconds" },
+    {
+      id: "file-converter",
+      name: "File converter",
+      input: "Convert to",
+      role: "combobox" as const,
+    },
   ];
 
   for (const route of routes) {
@@ -502,7 +508,9 @@ test("mobile navigation reaches every tool without horizontal page overflow", as
       await expect(page).toHaveURL(new RegExp(`/tools/${route.id}$`));
       await expect(navigation).toBeHidden();
       await expect(page.getByRole("heading", { name: route.name, level: 1 })).toBeVisible();
-      await expect(page.getByRole("textbox", { name: route.input, exact: true })).toBeVisible();
+      await expect(
+        page.getByRole(route.role ?? "textbox", { name: route.input, exact: true }),
+      ).toBeVisible();
       await expect
         .poll(() =>
           page.evaluate(

@@ -154,4 +154,6 @@ pnpm run deploy
 
 For a schema change, generate and test the new migration locally, review its SQL, commit both SQL and Drizzle metadata, then run `pnpm db:migrate:remote` before deployment. Never rewrite a migration that has already been applied. A failed application deployment does not undo an already-applied database migration; keep schema changes compatible with the currently deployed API where practical.
 
+The file converter is a frontend-only release and requires no new migration or Cloudflare binding. `pnpm build` prepares PDF.js fonts, character maps, codecs, and licenses under ignored `public/pdfjs/`, then copies them into `dist/client/pdfjs/`. The PDF worker is emitted as a versioned Vite asset. Deploy the complete static build so those resources match the installed PDF.js version; no CDN or file-upload endpoint is used.
+
 If moving to the existing Docker/nginx host later, keep the React static frontend and port the Hono entry point plus repository adapter to Node and a persistent SQLite volume. That fallback is documented in the plan; this repository currently implements the Cloudflare runtime only.

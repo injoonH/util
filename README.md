@@ -1,6 +1,6 @@
 # Utility workbench
 
-A collection of eight everyday tools: instant clipboard sharing, Markdown preview, Base64, JSON formatting, URL utilities, text cleanup, UUID generation, and timestamp conversion.
+A collection of nine everyday tools: instant clipboard sharing, Markdown preview, Base64, JSON formatting, URL utilities, text cleanup, file conversion, UUID generation, and timestamp conversion.
 
 The conversion and preview tools run in the browser. Clipboard sharing uses a small Cloudflare Worker API and temporary D1 storage so text can move between devices without an account.
 
@@ -109,6 +109,21 @@ pnpm test
 ```
 
 Review and commit the new SQL and `migrations/meta/` files together. Add a new migration for changes to an already-applied schema. Local migration success does not apply that migration in production; the deployment guide describes that separate step.
+
+## File converter
+
+Open [File converter](https://util.yuwol.dev/tools/file-converter) to convert images or export PDF pages. Files, previews, and PDF passwords stay in memory in your browser; they are never uploaded or saved in browser storage.
+
+| Input                          | Output                                  |
+| ------------------------------ | --------------------------------------- |
+| JPG, PNG, WebP, GIF, BMP, AVIF | PNG, JPG, WebP, or one combined PDF     |
+| PDF                            | One PNG, JPG, or WebP per selected page |
+
+Image decoding depends on browser support. Animated images export a still image. JPG uses a white background for transparent areas. Images keep their dimensions; PDF pages offer 72, 144 (default), or 216 DPI, page ranges such as `1, 3-5`, and an optional document password. PDF output puts images on separate pages in source order; it does not merge existing PDFs.
+
+Select up to 10 files, at most 25 MiB each and 50 MiB combined. Output is bounded to 100 files and 100 MiB, with a 16 megapixel / 8,192 pixel-per-side canvas limit. Lower PDF resolution or choose fewer pages when a document exceeds these limits. Download files individually or together as a ZIP; duplicate names are made unique. Cancel keeps completed files available, and changing inputs or settings clears outdated results.
+
+Conversion uses browser canvas, PDF.js, pdf-lib, and fflate, loaded on demand. The PDF worker, fonts, character maps, codecs, and their licenses are served from this site's static assets. `pnpm dev` and `pnpm build` automatically copy the PDF support assets into the ignored `public/pdfjs/` directory using `scripts/prepare-pdf-assets.mjs`. Run those scripts rather than invoking Vite directly.
 
 ## Clipboard behavior
 

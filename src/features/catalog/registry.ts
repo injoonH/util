@@ -3,6 +3,7 @@ import {
   Braces,
   Clipboard,
   Clock3,
+  Files,
   FileText,
   Fingerprint,
   Link2,
@@ -17,6 +18,7 @@ export const categories = [
   "Encoding",
   "Generators",
   "Time",
+  "Files",
 ] as const;
 export type Category = (typeof categories)[number];
 
@@ -80,6 +82,17 @@ export const tools = [
     color: "bg-[#f5e6e3] text-[#ac746a] dark:bg-rose-950 dark:text-rose-300",
     keywords: "uppercase lowercase title count words sort duplicates trim",
     component: lazy(() => import("@/features/text/text-tool")),
+  },
+  {
+    id: "file-converter",
+    name: "File converter",
+    description:
+      "Give your files a new format. Convert images and PDF pages, right in your browser.",
+    category: "Files",
+    icon: Files,
+    color: "bg-[#e7eee5] text-[#66825e] dark:bg-green-950 dark:text-green-300",
+    keywords: "file extension convert converter jpg jpeg png webp pdf gif bmp avif image zip",
+    component: lazy(() => import("@/features/file-converter/file-converter-tool")),
   },
   {
     id: "uuid",
