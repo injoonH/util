@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { type Download, expect, type Page, test } from "@playwright/test";
 import { unzipSync } from "fflate";
+import { decode as decodeJpeg } from "jpeg-js";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 const browserErrors = new WeakMap<Page, string[]>();
@@ -135,6 +136,32 @@ test("PNG transparency becomes white in JPG, and WebP exports its real format", 
   expect(webp.bytes.subarray(0, 4).toString()).toBe("RIFF");
   expect(webp.bytes.subarray(8, 12).toString()).toBe("WEBP");
   expect((await inspectImage(page, webp.bytes, 7, 1)).pixel[3]).toBe(0);
+});
+
+test("PNG colors and partial transparency survive JPG conversion", async ({ page }) => {
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "color-blocks.png",
+    mimeType: "image/png",
+    buffer: await readFile(new URL("../fixtures/color-blocks.png", import.meta.url)),
+  });
+  await selectFormat(page, "JPG");
+  await page.getByRole("spinbutton", { name: "Quality (%)", exact: true }).fill("100");
+  await page.getByRole("button", { name: "Convert files", exact: true }).click();
+  const { bytes } = await downloadBytes(page, "Download color-blocks.jpg");
+  // Decode the actual download independently of the browser's canvas APIs.
+  const image = decodeJpeg(bytes, { useTArray: true });
+  expect([image.width, image.height]).toEqual([128, 64]);
+  const samples = [
+    { x: 32, y: 16, color: [255, 0, 0, 255] },
+    { x: 96, y: 16, color: [0, 255, 0, 255] },
+    { x: 32, y: 48, color: [127, 127, 255, 255] },
+    { x: 96, y: 48, color: [255, 255, 255, 255] },
+  ];
+  for (const { x, y, color } of samples) {
+    const pixel = image.data.subarray((y * image.width + x) * 4, (y * image.width + x) * 4 + 4);
+    for (const [index, channel] of color.entries())
+      expect(Math.abs(pixel[index] - channel)).toBeLessThan(5);
+  }
 });
 
 test("PDF pages render locally and ZIP downloads contain every real page image", async ({

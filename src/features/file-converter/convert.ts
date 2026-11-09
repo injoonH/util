@@ -1,4 +1,4 @@
-import { convertImage } from "./image";
+import { assertCanvasExportAllowed, convertImage } from "./image";
 import {
   detectSourceFormat,
   MAX_OUTPUT_BYTES,
@@ -53,6 +53,8 @@ export async function convertFiles(
   if (!Number.isFinite(options.quality) || options.quality < 0.01 || options.quality > 1)
     throw new Error("Choose an image quality between 1 and 100 percent.");
   if (![1, 2, 3].includes(options.pdfScale)) throw new Error("Choose a supported PDF resolution.");
+  signal.throwIfAborted();
+  assertCanvasExportAllowed();
   const errors: ConversionFailure[] = [];
   const usedNames = new Set<string>();
   let outputBytes = 0;

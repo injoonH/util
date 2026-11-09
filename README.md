@@ -58,14 +58,16 @@ Put that line in your zsh startup configuration to enable automatic version swit
 
 Use the explicit `run` in `pnpm run deploy`: pnpm also has an unrelated built-in `deploy` command for packaging workspace dependencies.
 
-Install Playwright's Chromium browser before running browser tests:
+Install Playwright's Chromium and Firefox browsers before running browser tests:
 
 ```sh
-pnpm exec playwright install chromium
+pnpm exec playwright install chromium firefox
 pnpm test:e2e
 ```
 
 `pnpm check` does not include the browser suite; run both before publishing. Miniflare, Vite, and Playwright need local loopback sockets. In a restricted coding sandbox, an `EPERM` error when binding `127.0.0.1` means the test runner needs permission to run outside that network sandbox. The D1 integration tests use a disposable database and do not contact the production service.
+
+Chromium covers all tools; Firefox covers file conversion, including restricted canvas permissions. Use `pnpm test:e2e --project=firefox` to run just those Firefox checks.
 
 ## Code layout
 
@@ -124,6 +126,8 @@ Image decoding depends on browser support. Animated images export a still image.
 Select up to 10 files, at most 25 MiB each and 50 MiB combined. Output is bounded to 100 files and 100 MiB, with a 16 megapixel / 8,192 pixel-per-side canvas limit. Lower PDF resolution or choose fewer pages when a document exceeds these limits. Download files individually or together as a ZIP; duplicate names are made unique. Cancel keeps completed files available, and changing inputs or settings clears outdated results.
 
 Conversion uses browser canvas, PDF.js, pdf-lib, and fflate, loaded on demand. The PDF worker, fonts, character maps, codecs, and their licenses are served from this site's static assets. `pnpm dev` and `pnpm build` automatically copy the PDF support assets into the ignored `public/pdfjs/` directory using `scripts/prepare-pdf-assets.mjs`. Run those scripts rather than invoking Vite directly.
+
+If the browser blocks or replaces canvas pixels, conversion stops with permission guidance instead of offering a corrupted image. In Firefox, use the image permission icon beside the address bar to allow **Extract Canvas Data** for `util.yuwol.dev`, then retry. A canvas-blocking extension may need a site exception. See [Mozilla's canvas-permission guidance](https://support.mozilla.org/en-US/questions/1446742).
 
 ## Clipboard behavior
 

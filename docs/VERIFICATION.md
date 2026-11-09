@@ -20,7 +20,7 @@ The implementation now includes nine tools, responsive shadcn UI, themes, search
 
 The browser suite covers catalog search/favorite persistence, command palette navigation, Unicode Base64 round trips and invalid-input output clearing, JSON numeric precision, Markdown safe rendering, clipboard sharing between separate browser contexts by link and code, deletion invalidation, skip navigation preserving share fragments, cancellation of pending retrieval, receipt persistence when creation finishes after navigation, keyboard panel resizing, and mobile navigation/layout.
 
-Tests ran on Linux using the environment's installed Chromium executable. Its missing runtime libraries were extracted into a temporary directory; no system packages were installed. The Playwright config supports `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and `PLAYWRIGHT_BASE_URL` overrides. Firefox and Safari/WebKit have not been verified. Production checks are recorded in the dated deployment notes below.
+Tests ran on Linux using the environment's installed browser executables. Missing Chromium runtime libraries were extracted into a temporary directory; no system packages were installed. The Playwright config supports `PLAYWRIGHT_CHROMIUM_EXECUTABLE`, `PLAYWRIGHT_FIREFOX_EXECUTABLE`, and `PLAYWRIGHT_BASE_URL` overrides. Later converter checks include Firefox; Safari/WebKit has not been verified. Production checks are recorded in the dated deployment notes below.
 
 ## Reproduce
 
@@ -29,7 +29,7 @@ Follow the setup instructions in [README.md](../README.md), then run:
 ```sh
 pnpm check
 pnpm db:migrate:local
-pnpm exec playwright install chromium
+pnpm exec playwright install chromium firefox
 pnpm test:e2e
 ```
 
@@ -62,3 +62,13 @@ Nine converter browser workflows verify genuine PNG/JPG/WebP download signatures
 New unit tests cover content signatures, bounded page-range expansion, input/output naming, filename sanitization, duplicate names, file limits, and canvas limits. Existing clipboard API and browser workflows passed alongside the converter. A development-server run had one clipboard timing failure during a simultaneous build; it passed in isolation and in the complete production-preview run.
 
 `pnpm audit --prod` reported no known vulnerabilities, and Gitleaks found no secrets. PDF.js fonts, character maps, codecs, and licenses are included in static assets. PDF rendering and its worker are loaded on demand; Vite reports the PDF.js chunk's size above its default warning threshold. This release changes no database schema or API contract.
+
+## Firefox image exports: 2026-11-09
+
+The owner reported black PNG → JPG output on Windows with Firefox 159.0.1. Image conversion now fully decodes an HTML image, keeps its blob URL alive through encoding, and uses a software canvas with an opaque white background for JPG. A fixed four-color readback check stops conversion when browser canvas access is blocked or replaced; it does not classify user images as corrupt based on their colors.
+
+Before the change, clean and Strict Firefox profiles preserved the sample's colors on Linux, while Resist Fingerprinting replaced exported pixels with unrelated values. The restricted profile now gets an actionable site-permission error and no download. Normal conversion is tested with an independently encoded PNG containing opaque red/green, half-transparent blue, and transparent regions; jpeg-js decodes the downloaded JPG outside the browser to check the actual colors.
+
+Passed `pnpm check`, including all 92 unit/integration tests and the production build. The complete production-preview browser run passed 33 workflows: 22 Chromium and eleven Firefox 157 checks. The PNG → JPG color test and restricted-canvas permission test also passed with Firefox 159 on Linux using `PLAYWRIGHT_FIREFOX_EXECUTABLE`. Runtime dependency audit and Gitleaks found no issues.
+
+The exact Windows 159.0.1/GPU-specific cause could not be directly reproduced in this Linux environment. Playwright remains pinned at 1.64.1: the newer bundled Firefox 159 stalled WebP downloads even on a minimal page outside the app, with both old and new drivers, while Firefox 157 passed. The two focused Firefox 159 checks above exclude WebP. Recheck this download behavior before upgrading the bundled browser; do not infer complete Firefox 159 compatibility from the focused checks.
