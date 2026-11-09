@@ -97,3 +97,15 @@ The owner requested clipboard passwords and easier-to-remember codes. Add option
 Use browser-side PBKDF2-HMAC-SHA256 at 600,000 iterations with a 128-bit random salt. The server stores a SHA-256 verifier of the derived key and uses constant-time comparison. This keeps expensive password derivation outside the Workers Free CPU budget while retaining a slow salted password derivation. Raw passwords are not transmitted or saved; shared content remains server-readable. The derivation parameters are an API contract and need versioning before a future change. A per-share D1 counter limits wrong password attempts across clients and both credentials. Migration `0001_clipboard_passwords.sql` adds nullable protection metadata and defaulted attempt counters without rewriting existing records.
 
 References: [OWASP PBKDF2 guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2), [Workers CPU limits](https://developers.cloudflare.com/workers/platform/limits/#cpu-time).
+
+### 2026-11-09 browser file conversion
+
+Add a ninth tool, File converter, under the Files category. The requested JPG → PNG and PDF → PNG conversions expand to PNG/JPG/WebP output from supported raster images or PDF pages, plus images combined into one PDF. GIF, BMP, and AVIF inputs depend on the browser's decoder; animation becomes a still image. SVG, office documents, videos, and arbitrary extension renaming are outside this release.
+
+Keep all files and optional PDF passwords in browser memory. Use native canvas for raster conversion, PDF.js in its own worker for PDF rendering, pdf-lib for PDF creation, and fflate for ZIP downloads. Lazy-load these libraries and serve PDF fonts, character maps, codecs, and licenses from the same origin. No API, D1 migration, external conversion service, account, or paid hosting addition is needed.
+
+Use the existing feature layout: `src/features/file-converter/logic.ts` for content detection, filenames, page ranges and limits; `image.ts`, `pdf.ts`, and `convert.ts` for conversion and resource cleanup; and `file-converter-tool.tsx` for the shadcn UI. Prepare ignored PDF static resources with `scripts/prepare-pdf-assets.mjs` before development and production builds. Register the tool in the shared catalog and cover downloads with real browser tests.
+
+Support batches of ten files (25 MiB/file, 50 MiB total), PDF page selection and resolution, password-protected PDF input, individual/ZIP downloads, safe unique filenames, cancellation, and per-file errors. Bound output to 100 files and 100 MiB, and canvases to 16 megapixels and 8,192 pixels per side. JPG transparency becomes white. Clear previews when settings change or the user leaves the tool; never persist inputs.
+
+References: [PDF.js](https://mozilla.github.io/pdf.js/examples/), [pdf-lib](https://pdf-lib.js.org/), [canvas encoding](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob), [fflate](https://github.com/101arrowz/fflate).

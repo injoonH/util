@@ -2,7 +2,7 @@
 
 Latest verification: 2026-11-09 (Asia/Seoul). Earlier release results are retained below.
 
-The first-release implementation is complete in this checkout: eight tools, responsive shadcn UI, themes, search, favorites, command palette, resizable desktop editors, anonymous clipboard API, D1 migrations, and deployment configuration. The original decisions remain in [PLAN.md](PLAN.md).
+The implementation now includes nine tools, responsive shadcn UI, themes, search, favorites, command palette, resizable desktop editors, anonymous clipboard API, D1 migrations, and deployment configuration. The original decisions and subsequent additions remain in [PLAN.md](PLAN.md).
 
 ## Initial release checks: 2026-10-28
 
@@ -20,7 +20,7 @@ The first-release implementation is complete in this checkout: eight tools, resp
 
 The browser suite covers catalog search/favorite persistence, command palette navigation, Unicode Base64 round trips and invalid-input output clearing, JSON numeric precision, Markdown safe rendering, clipboard sharing between separate browser contexts by link and code, deletion invalidation, skip navigation preserving share fragments, cancellation of pending retrieval, receipt persistence when creation finishes after navigation, keyboard panel resizing, and mobile navigation/layout.
 
-Tests ran on Linux using the environment's installed Chromium executable. Its missing runtime libraries were extracted into a temporary directory; no system packages were installed. The Playwright config supports `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and `PLAYWRIGHT_BASE_URL` overrides. Firefox, Safari/WebKit, and a live Cloudflare deployment have not been verified.
+Tests ran on Linux using the environment's installed Chromium executable. Its missing runtime libraries were extracted into a temporary directory; no system packages were installed. The Playwright config supports `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and `PLAYWRIGHT_BASE_URL` overrides. Firefox and Safari/WebKit have not been verified. Production checks are recorded in the dated deployment notes below.
 
 ## Reproduce
 
@@ -52,3 +52,13 @@ Deployment version: `19398713-8d31-4031-9a5e-aa73902d6d1f` at [https://util.yuwo
 Passed Biome, frontend/server/configuration TypeScript checks, 74 unit/integration tests in ten files, all 12 Chromium browser workflows, and the production build. Drizzle reported no remaining schema changes. New tests cover password derivation against an independent PBKDF2 reference, missing/wrong/correct keys for both credentials, no plaintext/password-key persistence, per-share failed-attempt limits and recovery, six-character code generation/collision retries, and legacy 12-character code compatibility. Desktop and mobile password controls were inspected with zero horizontal page overflow.
 
 Production HTTPS verification created protected and unprotected temporary shares. Both token and code access required the protected share's password, rejected wrong keys, and returned the original Unicode text with the right key. Generated codes contained six characters. Unprotected shares remained accessible without a password. All temporary test shares were deleted, and subsequent retrieval returned status 404. Protected retrieval used `Cache-Control: no-store`.
+
+## File converter: 2026-11-09
+
+Passed `pnpm check`: Biome, frontend/server/configuration TypeScript checks, 92 unit/integration tests across eleven files, and the production build. All 21 Chromium workflows passed together against the built application using `pnpm preview`. Desktop and mobile converter screenshots were inspected; a 390-pixel viewport had zero horizontal overflow.
+
+Nine converter browser workflows verify genuine PNG/JPG/WebP download signatures, decoded dimensions and color pixels, white JPG backgrounds and preserved WebP transparency, selected PDF pages and DPI, actual ZIP entries, image order and dimensions in a readable generated PDF, missing/wrong/correct PDF passwords and password clearing, damaged or renamed files, duplicate filenames, outdated-result clearing, and cancellation followed by a fresh conversion. Requests recorded during PDF conversion remained GET requests on the application origin; file content was not uploaded. Fixtures contain generated images, PDFs, and a documented public test password.
+
+New unit tests cover content signatures, bounded page-range expansion, input/output naming, filename sanitization, duplicate names, file limits, and canvas limits. Existing clipboard API and browser workflows passed alongside the converter. A development-server run had one clipboard timing failure during a simultaneous build; it passed in isolation and in the complete production-preview run.
+
+`pnpm audit --prod` reported no known vulnerabilities, and Gitleaks found no secrets. PDF.js fonts, character maps, codecs, and licenses are included in static assets. PDF rendering and its worker are loaded on demand; Vite reports the PDF.js chunk's size above its default warning threshold. This release changes no database schema or API contract.
