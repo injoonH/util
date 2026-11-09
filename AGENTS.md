@@ -3,6 +3,8 @@
 ## Git and GitHub
 
 - Use the `gh` CLI for GitHub operations.
+- The user authorizes creating and pushing branches, opening PRs, and merging PRs autonomously within user-requested work. This is standing authorization; proceed without repeated confirmation.
+- Create focused commits when appropriate as work progresses.
 - Sign local commits using the existing GPG configuration and signing key.
 - Commit titles and PR titles must start with a capital letter and contain at most 50 characters.
 - Assign every new PR to `injoonH`, the user's GitHub account. Use `gh pr create --assignee injoonH`; `--assignee @me` is equivalent when authenticated as that account.
