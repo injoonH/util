@@ -13,4 +13,6 @@ writer.encrypt("converter-test-password", algorithm="RC4-128")
 writer.write("tests/fixtures/password-protected.pdf")
 ```
 
+`color-blocks.png` is a generated 128 × 64 RGBA PNG with red, green, half-transparent blue, and fully transparent quadrants. It was encoded with Node's zlib and PNG CRC chunks rather than a browser canvas, so restricted canvas access cannot corrupt the test input. JPG output is decoded separately with jpeg-js to check its actual pixels.
+
 Other image and PDF fixtures are generated inside the Playwright tests.

@@ -20,7 +20,7 @@ corepack install
 pnpm install --frozen-lockfile
 pnpm db:migrate:local
 pnpm check
-pnpm exec playwright install chromium
+pnpm exec playwright install chromium firefox
 pnpm test:e2e
 ```
 

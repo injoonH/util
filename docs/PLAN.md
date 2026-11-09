@@ -109,3 +109,13 @@ Use the existing feature layout: `src/features/file-converter/logic.ts` for cont
 Support batches of ten files (25 MiB/file, 50 MiB total), PDF page selection and resolution, password-protected PDF input, individual/ZIP downloads, safe unique filenames, cancellation, and per-file errors. Bound output to 100 files and 100 MiB, and canvases to 16 megapixels and 8,192 pixels per side. JPG transparency becomes white. Clear previews when settings change or the user leaves the tool; never persist inputs.
 
 References: [PDF.js](https://mozilla.github.io/pdf.js/examples/), [pdf-lib](https://pdf-lib.js.org/), [canvas encoding](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob), [fflate](https://github.com/101arrowz/fflate).
+
+### 2026-11-09 Firefox image-export compatibility
+
+The owner reported black PNG → JPG output on Windows with Firefox 159.0.1. Use a fully decoded HTML image and a software-backed export canvas instead of the accelerated ImageBitmap path. Retain the source blob URL through encoding, then release the image, URL, and canvas. JPG output uses an opaque canvas with an explicit white background.
+
+Check a fixed four-color canvas before converting files. If canvas access is denied or its pixels are replaced, stop with site-specific permission guidance rather than offering corrupt output. This check uses known colors, not the user's image, so legitimate black images remain valid. Respect browser privacy settings; do not change them or bypass permission checks. Firefox coverage and independent JPEG pixel decoding are part of regression testing.
+
+Default and Strict profiles preserved test colors on Linux. Resist Fingerprinting reproduced pixel replacement, but the exact Windows/GPU-specific cause is unconfirmed. Record verified browser versions and limitations in [VERIFICATION.md](VERIFICATION.md).
+
+References: [image decoding](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decode), [software canvas readback](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext), [Mozilla's Resist Fingerprinting explanation](https://support.mozilla.org/en-US/kb/resist-fingerprinting).
